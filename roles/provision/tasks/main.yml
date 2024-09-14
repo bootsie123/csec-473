@@ -1,0 +1,51 @@
+# John Arrandale (jca7237@rit.edu)
+# 9/13/24
+
+---
+- name: Set Facts
+  ansible.builtin.set_fact:
+    delete_vms: "{{ delete_all is defined and delete_all }}"
+
+- name: Add Keys
+  openstack.cloud.keypair:
+    state: present
+    name: "{{ item | basename }}"
+    public_key_file: "{{ item }}"
+  loop: "{{ query('fileglob', 'files/keys/*') }}"
+
+- name: Create/Delete Instances
+  openstack.cloud.server:
+    state: "{{  'absent' if delete_vms else 'present' }}"
+    name: "{{ item.name }}"
+    image: "{{ item.image }}"
+    flavor: "{{ item.flavor | default('medium') }}"
+    key_name: "{{ item.key }}"
+    terminate_volume: true
+    nics:
+      - net-name: MAIN-NAT
+      - net-name: SSHJumpNet
+    volume_size: "{{ item.vol_size | default(16) }}"
+    boot_from_volume: true
+  loop: "{{ vms }}"
+  register: vm_results
+
+- name: Print Results
+  ansible.builtin.debug:
+    msg: "{{ vm_results }}"
+
+- name: Set Variables
+  ansible.builtin.set_fact:
+    new_vms: "{{ vm_results.results | map(attribute='server.addresses.SSHJumpNet') | map('first') | map(attribute='addr') |
+            zip(vm_results.results | map(attribute='item.ssh_user')) | list }}"
+  when: "not delete_vms"
+
+- name: Generate Inventory File
+  ansible.builtin.template:
+    src: files/templates/inventory.j2
+    dest: inventory.ini
+    mode: "0600"
+    force: true
+  when: "not delete_vms"
+
+- name: Reload Inventory
+  ansible.builtin.meta: refresh_inventory

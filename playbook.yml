@@ -1,0 +1,21 @@
+# John Arrandale (jca7237@rit.edu)
+# 9/13/24
+
+---
+- name: Provision Openstack Instance
+  hosts: localhost
+  vars_files:
+    - vars.yml
+  roles:
+    - provision
+  tags:
+    - provision
+
+- name: Connectivity Test
+  hosts: vms
+  tags:
+    - test
+    - never
+  tasks:
+    - name: Test Connectivity
+      ansible.builtin.ping:

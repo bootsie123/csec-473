@@ -1,0 +1,7 @@
+[vms]
+{% for vm in new_vms %}
+{{ vm[0] }} ansible_user={{ vm[1] }}
+{% endfor %}
+
+[vms:vars]
+ansible_ssh_common_args='-J sshproxy@ssh.cyberrange.rit.edu -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'

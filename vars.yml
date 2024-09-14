@@ -1,0 +1,13 @@
+delete_all: false # If true, deletes all of the listed VMs
+
+vms: # A list of VMs to provision or to delete
+  - name: test # The name of the vm (required)
+    image: b08842a0-a2d5-44e3-b46b-46cc9588fa85 # The name or id of the image to use (required)
+    flavor: medium # The flavor to use (defaults to medium)
+    key: test-key # The ssh-key to use (required)
+    ssh_user: debian # The ssh user to use (required)
+    vol_size: 8 # The volume size to use (defaults to 16GB)
+  - name: test2
+    image: b08842a0-a2d5-44e3-b46b-46cc9588fa85
+    key: test-key
+    ssh_user: debian
